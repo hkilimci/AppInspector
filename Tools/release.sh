@@ -3,7 +3,11 @@
 #
 #   DEVELOPER_ID_APP="Developer ID Application: Name (TEAMID)" \
 #   NOTARY_PROFILE="appinspector-notary" \   # any notarytool profile for the same team works
-#   Tools/release.sh [version]
+#   Tools/release.sh <version> <build>      e.g. Tools/release.sh 0.2.0 2
+#
+# <build> is CFBundleVersion and must be higher than every earlier release: Sparkle compares it.
+# Produces build/AppInspector-<version>.dmg (for downloads) and build/AppInspector-<version>.zip
+# (the Sparkle update archive), both from the same stapled app. Then run Tools/make-update-feed.sh.
 #
 # One-time setup of the notary profile (stores credentials in the login keychain, never in this repo):
 #   xcrun notarytool store-credentials appinspector-notary --apple-id <id> --team-id <TEAMID>
@@ -12,7 +16,8 @@
 # signs and notarizes; run Tools/self-audit.sh and the test matrix on the result.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-VERSION="${1:-0.1.0}"
+VERSION="${1:?usage: release.sh <version> <build>}"
+BUILD="${2:?usage: release.sh <version> <build>}"
 : "${DEVELOPER_ID_APP:?set DEVELOPER_ID_APP to your 'Developer ID Application: …' identity (see: security find-identity -v -p codesigning)}"
 : "${NOTARY_PROFILE:?set NOTARY_PROFILE to a notarytool keychain profile}"
 
@@ -21,13 +26,14 @@ security find-identity -v -p codesigning | grep -F "$DEVELOPER_ID_APP" >/dev/nul
 
 ROOT="$PWD"
 APP="$ROOT/build/AppInspector.app"; DMG="$ROOT/build/AppInspector-$VERSION.dmg"; ZIP="$ROOT/build/AppInspector-$VERSION.zip"
-APPINSPECTOR_UNIVERSAL=1 Tools/make-app-bundle.sh "$APP" >/dev/null   # absolute path: the script changes directory
+APPINSPECTOR_UNIVERSAL=1 APPINSPECTOR_VERSION="$VERSION" APPINSPECTOR_BUILD="$BUILD" \
+  Tools/make-app-bundle.sh "$APP" >/dev/null   # absolute path: the script changes directory
 [ -x "$APP/Contents/MacOS/AppInspector" ] || { echo "bundle was not created at $APP" >&2; exit 1; }
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
+# Only release builds start the updater (see UpdateManager.shouldStart).
+/usr/libexec/PlistBuddy -c "Add :AppInspectorDistribution string release" "$APP/Contents/Info.plist"
 
 # Hardened runtime, no sandbox (the app must read system databases), no extra entitlements.
-codesign --force --timestamp --options runtime --entitlements Tools/AppInspector.entitlements \
-  --sign "$DEVELOPER_ID_APP" "$APP"
+Tools/sign-bundle.sh "$APP" "$DEVELOPER_ID_APP" --timestamp
 codesign --verify --strict --verbose=2 "$APP"
 lipo "$APP/Contents/MacOS/AppInspector" -verify_arch arm64 x86_64 || { echo "binary is not universal" >&2; exit 1; }
 
@@ -36,6 +42,8 @@ xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
 xcrun stapler staple "$APP"
 xcrun stapler validate "$APP"
 spctl -a -vv -t exec "$APP"
+# The update archive holds the stapled app, so Gatekeeper accepts it offline after Sparkle installs it.
+rm -f "$ZIP" && ditto -c -k --keepParent "$APP" "$ZIP"
 
 rm -rf "$ROOT/build/dmg" && mkdir -p "$ROOT/build/dmg" && cp -R "$APP" "$ROOT/build/dmg/" && ln -s /Applications "$ROOT/build/dmg/Applications"
 hdiutil create -volname "App Inspector" -srcfolder "$ROOT/build/dmg" -ov -format UDZO "$DMG" >/dev/null

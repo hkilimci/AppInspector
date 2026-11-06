@@ -105,12 +105,16 @@ struct AppInspectorApp: App {
             ContentView()
                 .environment(store)
                 .frame(minWidth: 860, minHeight: 520)
-                .task { store.startLiveRefresh(); await store.rescan() }
+                .task { UpdateManager.shared.start(); store.startLiveRefresh(); await store.rescan() }
         }
         .commands {
+            CommandGroup(after: .appInfo) { CheckForUpdatesButton(updates: UpdateManager.shared) }
             CommandGroup(after: .newItem) {
                 Button("Rescan") { Task { await store.rescan() } }.keyboardShortcut("r")
             }
+        }
+        Settings {
+            UpdateSettingsView(updates: UpdateManager.shared)
         }
         Window("About this data", id: "about-data") {
             AboutDataView().environment(store).frame(minWidth: 640, minHeight: 420)

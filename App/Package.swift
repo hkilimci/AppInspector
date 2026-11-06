@@ -5,7 +5,11 @@ import PackageDescription
 let package = Package(
     name: "AppInspector",
     platforms: [.macOS(.v15)],
-    dependencies: [.package(path: "../Packages/InspectorKit")],
+    dependencies: [
+        .package(path: "../Packages/InspectorKit"),
+        // Pinned like Panoramac; bump deliberately and re-test the update path.
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1"),
+    ],
     targets: [
         .executableTarget(
             name: "AppInspector",
@@ -14,6 +18,7 @@ let package = Package(
                 .product(name: "InspectorParsers", package: "InspectorKit"),
                 .product(name: "InspectorPlatform", package: "InspectorKit"),
                 .product(name: "InspectorSources", package: "InspectorKit"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ]),
         .testTarget(name: "AppInspectorTests", dependencies: [
             "AppInspector",
