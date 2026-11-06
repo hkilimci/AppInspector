@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>AppInspector</title>
+        <item>
+            <title>0.2.0</title>
+            <pubDate>Fri, 06 Nov 2026 23:26:00 +0300</pubDate>
+            <link>https://azrapps.com/AppInspector/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/hkilimci/AppInspector/releases</sparkle:fullReleaseNotesLink>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>App Inspector 0.2.0</h2>
+<ul>
+<li>App Inspector now keeps itself up to date. It checks for a new version once a day, downloads it in the background and installs it when you quit the app.</li>
+<li>Turn automatic checks or installs off in Settings, or choose Check for Updates… in the app menu.</li>
+<li>Every update is signed, and App Inspector refuses one whose signature doesn’t match.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/hkilimci/AppInspector/releases/download/v0.2.0/AppInspector-0.2.0.zip" length="3951870" type="application/octet-stream" sparkle:edSignature="pXe9vdhsy//73lHznPCjZDyyIaWWbYdk74nwL1GAQqL+XmMNfSayqVL6Avh7K/L3WaUR97kGqPimLBgeNP6mBA=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: MZAnKV3hqvOvdrzJV3WQtiZCPPHuOantq/6vgB+HYYladibj7/KB6XxXxSgPDAUdknjJXp5QzGZdmGDhUt4KAw==
+length: 1693
+-->
