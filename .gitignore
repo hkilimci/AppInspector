@@ -1,0 +1,9 @@
+# Host captures are real user-machine data (app inventory, launchd jobs). Never commit.
+Packages/InspectorKit/Tests/Fixtures/*-host/
+build/
+.build/
+
+.DS_Store
+.swiftpm/
+xcuserdata/
+*.xcuserstate
