@@ -4,8 +4,11 @@
 set -euo pipefail
 CALLER="$PWD"
 cd "$(dirname "$0")/../App"
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/AppInspector"
+# APPINSPECTOR_UNIVERSAL=1 builds for Apple silicon and Intel (release builds); dev builds use the host only.
+ARCH_FLAGS=()
+[ "${APPINSPECTOR_UNIVERSAL:-0}" = 1 ] && ARCH_FLAGS=(--arch arm64 --arch x86_64)
+swift build -c release ${ARCH_FLAGS[@]+"${ARCH_FLAGS[@]}"}
+BIN="$(swift build -c release ${ARCH_FLAGS[@]+"${ARCH_FLAGS[@]}"} --show-bin-path)/AppInspector"
 OUT="${1:-../build/AppInspector.app}"
 case "${1:-}" in /*) ;; "") ;; *) OUT="$CALLER/$1" ;; esac   # a relative argument is relative to where the user ran the script
 rm -rf "$OUT"; mkdir -p "$OUT/Contents/MacOS"

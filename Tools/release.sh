@@ -2,7 +2,7 @@
 # Release build: Developer ID signing, hardened runtime, notarization, stapling, DMG.
 #
 #   DEVELOPER_ID_APP="Developer ID Application: Name (TEAMID)" \
-#   NOTARY_PROFILE="appinspector-notary" \
+#   NOTARY_PROFILE="appinspector-notary" \   # any notarytool profile for the same team works
 #   Tools/release.sh [version]
 #
 # One-time setup of the notary profile (stores credentials in the login keychain, never in this repo):
@@ -21,7 +21,7 @@ security find-identity -v -p codesigning | grep -F "$DEVELOPER_ID_APP" >/dev/nul
 
 ROOT="$PWD"
 APP="$ROOT/build/AppInspector.app"; DMG="$ROOT/build/AppInspector-$VERSION.dmg"; ZIP="$ROOT/build/AppInspector-$VERSION.zip"
-Tools/make-app-bundle.sh "$APP" >/dev/null            # absolute path: the script changes directory
+APPINSPECTOR_UNIVERSAL=1 Tools/make-app-bundle.sh "$APP" >/dev/null   # absolute path: the script changes directory
 [ -x "$APP/Contents/MacOS/AppInspector" ] || { echo "bundle was not created at $APP" >&2; exit 1; }
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
 
@@ -29,6 +29,7 @@ Tools/make-app-bundle.sh "$APP" >/dev/null            # absolute path: the scrip
 codesign --force --timestamp --options runtime --entitlements Tools/AppInspector.entitlements \
   --sign "$DEVELOPER_ID_APP" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
+lipo "$APP/Contents/MacOS/AppInspector" -verify_arch arm64 x86_64 || { echo "binary is not universal" >&2; exit 1; }
 
 ditto -c -k --keepParent "$APP" "$ZIP"
 xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
