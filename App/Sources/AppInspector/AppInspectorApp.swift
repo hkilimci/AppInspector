@@ -6,6 +6,7 @@ import InspectorModel
 @main
 struct AppInspectorApp: App {
     @State private var store = InspectorStore()
+    @State private var lock = AppLockController()
 
     init() {
         if CommandLine.arguments.contains("--dump") { Self.dumpAndExit() }
@@ -103,24 +104,31 @@ struct AppInspectorApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .lockGate(lock)
                 .environment(store)
                 .frame(minWidth: 860, minHeight: 520)
                 .task { UpdateManager.shared.start(); store.startLiveRefresh(); await store.rescan() }
         }
         .commands {
-            CommandGroup(after: .appInfo) { CheckForUpdatesButton(updates: UpdateManager.shared) }
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesButton(updates: UpdateManager.shared)
+                LockNowButton(lock: lock)
+            }
             CommandGroup(after: .newItem) {
                 Button("Rescan") { Task { await store.rescan() } }.keyboardShortcut("r")
             }
         }
         Settings {
-            UpdateSettingsView(updates: UpdateManager.shared)
+            TabView {
+                Tab("Security", systemImage: "lock") { AppLockSettingsView(lock: lock) }
+                Tab("Updates", systemImage: "arrow.triangle.2.circlepath") { UpdateSettingsView(updates: UpdateManager.shared) }
+            }
         }
         Window("About this data", id: "about-data") {
-            AboutDataView().environment(store).frame(minWidth: 640, minHeight: 420)
+            AboutDataView().lockGate(lock).environment(store).frame(minWidth: 640, minHeight: 420)
         }
         Window("Diagnostics", id: "diagnostics") {
-            DiagnosticsView().environment(store).frame(minWidth: 560, minHeight: 280)
+            DiagnosticsView().lockGate(lock).environment(store).frame(minWidth: 560, minHeight: 280)
         }
     }
 }

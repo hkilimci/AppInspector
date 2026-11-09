@@ -19,11 +19,23 @@ App Inspector is read-only, with one exception: resetting privacy permissions wi
 
 ## Updates
 
-Release builds update themselves with [Sparkle](https://sparkle-project.org). Once a day App Inspector fetches [`appcast.xml`](appcast.xml) from this repository; that request is the only network traffic the app makes, and it carries nothing App Inspector reads from your Mac. New versions download from GitHub Releases and install when you quit the app. Both automatic checks and automatic installs can be turned off in **Settings**, and **Check for Updates…** is in the app menu.
+Release builds update themselves with [Sparkle](https://sparkle-project.org). Once a day App Inspector fetches [`appcast.xml`](appcast.xml) from this repository; that request is the only network traffic the app makes, and it carries nothing App Inspector reads from your Mac. New versions download from GitHub Releases and install when you quit the app. Both automatic checks and automatic installs can be turned off in **Settings › Updates**, and **Check for Updates…** is in the app menu.
 
 The feed and every update archive are signed with an EdDSA key, and Sparkle refuses an update whose signature doesn't match the public key built into the app. Development builds never start the updater.
 
 Version 0.1.0 has no updater; install a later release once from GitHub Releases.
+
+## App lock
+
+**Settings › Security** can require Touch ID or your login password before App Inspector shows anything. macOS runs the check (LocalAuthentication, which also accepts an Apple Watch set up to unlock the Mac), so App Inspector never sees your fingerprint or password. Turning the lock on or off asks for it too.
+
+Once unlocked, App Inspector locks again:
+
+- after the inactivity you choose: as soon as you switch to another app, or after 1, 5 or 15 minutes or an hour with no click, key press or scroll in its windows;
+- when the Mac or its display sleeps, the screen locks, the screen saver starts or you switch users;
+- when you choose **Lock App Inspector** (⌃⌘L) in the app menu.
+
+While locked, every window that shows scan data shows only the lock screen. Scans keep running behind it. The lock keeps people at your Mac out of App Inspector's windows; it doesn't encrypt anything, and it isn't a barrier against someone who can run commands as you.
 
 ## Requirements
 
